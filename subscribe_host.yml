@@ -1,0 +1,34 @@
+---
+- name: "Register server"
+  hosts: localhost
+  gather_facts: yes
+  vars:
+    sat_host: mysatellie.lab
+    activation_keys: "RHEL7_Prod_Key,Epel_key,repo_custom"
+    org: myorg
+  tasks:
+
+    - name: Install Satellite CA
+      yum:
+        name: http://"{{ sat_host }}"/pub/katello-ca-consumer-latest.noarch.rpm
+        state: latest
+
+    - name: Register with activationkey 
+      redhat_subscription:
+        state: present
+        force_register: yes
+        activationkey: "{{ activation_keys }}"
+        org_id: "{{ org }}"
+
+    - name: remove katello-agent
+      yum:
+        name: katello-agent
+        state: absent
+
+    - name: Install katello-host-tool (goferless)
+      yum:
+        name: katello-host-tools.noarch
+        state: latest
+
+    - name: Perform yum update info
+      shell: yum updateinfo
